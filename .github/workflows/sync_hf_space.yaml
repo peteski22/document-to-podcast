@@ -1,11 +1,8 @@
 name: Sync to Hugging Face Space
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'demo/**'
-
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
