@@ -121,8 +121,23 @@ if "clean_text" in st.session_state:
 
     if os.environ.get("HF_SPACE") == "TRUE":
         tts_link = "- [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M)"
+        SPEAKERS = [
+            {
+                "id": 1,
+                "name": "Sarah",
+                "description": "The main host. She explains topics clearly using anecdotes and analogies, teaching in an engaging and captivating way.",
+                "voice_profile": "af_sarah",
+            },
+            {
+                "id": 2,
+                "name": "Michael",
+                "description": "The co-host. He keeps the conversation on track, asks curious follow-up questions, and reacts with excitement or confusion, often using interjections like hmm or umm.",
+                "voice_profile": "am_michael",
+            },
+        ]
     else:
         tts_link = "- [OuteAI/OuteTTS-0.2-500M](https://huggingface.co/OuteAI/OuteTTS-0.2-500M-GGUF)"
+        SPEARES = DEFAULT_SPEAKERS
 
     st.markdown(
         "For this demo, we are using the following models: \n"
@@ -151,9 +166,9 @@ if "clean_text" in st.session_state:
     st.divider()
 
     st.subheader("Speaker configuration")
-    for s in DEFAULT_SPEAKERS:
+    for s in SPEAKERS:
         s.pop("id", None)
-    speakers = st.data_editor(DEFAULT_SPEAKERS, num_rows="dynamic")
+    speakers = st.data_editor(SPEAKERS, num_rows="dynamic")
 
     if st.button("Generate Podcast", on_click=gen_button_clicked):
         for n, speaker in enumerate(speakers):
