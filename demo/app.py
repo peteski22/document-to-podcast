@@ -30,7 +30,7 @@ def load_text_to_text_model():
 @st.cache_resource
 def load_text_to_speech_model():
     if os.environ.get("HF_SPACE") == "TRUE":
-        return load_tts_model("hexgrad/Kokoro-82M/kokoro-v0_19.pth")
+        return load_tts_model("hexgrad/kLegacy/v0.19/kokoro-v0_19.pth")
     else:
         return load_tts_model("OuteAI/OuteTTS-0.2-500M-GGUF/OuteTTS-0.2-500M-FP16.gguf")
 
@@ -137,7 +137,7 @@ if "clean_text" in st.session_state:
         ]
     else:
         tts_link = "- [OuteAI/OuteTTS-0.2-500M](https://huggingface.co/OuteAI/OuteTTS-0.2-500M-GGUF)"
-        SPEARES = DEFAULT_SPEAKERS
+        SPEAKERS = DEFAULT_SPEAKERS
 
     st.markdown(
         "For this demo, we are using the following models: \n"
