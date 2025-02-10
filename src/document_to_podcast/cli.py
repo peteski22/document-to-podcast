@@ -26,7 +26,7 @@ from document_to_podcast.utils import stack_audio_segments
 def document_to_podcast(
     input_file: str | None = None,
     output_folder: str | None = None,
-    text_to_text_model: str = "bartowski/Qwen2.5-3B-Instruct-GGUF/Qwen2.5-3B-Instruct-f16.gguf",
+    text_to_text_model: str = "bartowski/Qwen2.5-7B-Instruct-GGUF/Qwen2.5-7B-Instruct-Q8_0.gguf",
     text_to_text_prompt: str = DEFAULT_PROMPT,
     text_to_speech_model: str = "OuteAI/OuteTTS-0.2-500M-GGUF/OuteTTS-0.2-500M-FP16.gguf",
     speakers: list[Speaker] | None = None,
@@ -58,7 +58,7 @@ def document_to_podcast(
 
             Need to be a gguf file.
 
-            Defaults to `bartowski/Qwen2.5-3B-Instruct-GGUF/Qwen2.5-3B-Instruct-f16.gguf`.
+            Defaults to `bartowski/Qwen2.5-7B-Instruct-GGUF/Qwen2.5-7B-Instruct-Q8_0.gguf`.
 
         text_to_text_prompt (str, optional): The prompt for the text-to-text model.
             Defaults to DEFAULT_PROMPT.
