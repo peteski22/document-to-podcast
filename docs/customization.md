@@ -22,9 +22,9 @@ For example: `Qwen/Qwen2.5-1.5B-Instruct-GGUF/qwen2.5-1.5b-instruct-q8_0.gguf`.
 The model used to generate the audio from the podcast script.
 
 You can use any of the models listed in [`TTS_LOADERS`](api.md/#document_to_podcast.inference.model_loaders.TTS_LOADERS) out of the box.
-We currently support [OuteTTS](https://github.com/edwko/OuteTTS).
+We currently support [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M).
 
-If you want to use a different model, you can integrate it by implementing the `_load` and `_text_to_speech` functions and registering them in [`TTS_LOADERS`](api.md/#document_to_podcast.inference.model_loaders.TTS_LOADERS) and [`TTS_INFERENCE`](api.md/#document_to_podcast.inference.model_loaders.TTS_INFERENCE).
+If you want to use a different model, you can integrate it by implementing the `_load` and `_text_to_speech` functions and registering them in [`TTS_LOADERS`](api.md/#document_to_podcast.inference.model_loaders.TTS_LOADERS) and [`TTS_INFERENCE`](api.md/#document_to_podcast.inference.text_to_speech.TTS_INFERENCE).
 You can check [this repo](https://github.com/Kostis-S-Z/document-to-podcast/) where different text-to-speech models are integrated.
 
 ## 🖋️ **Other Customizable Parameters**

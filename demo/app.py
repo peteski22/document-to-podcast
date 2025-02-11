@@ -1,7 +1,6 @@
 """Streamlit app for converting documents to podcasts."""
 
 import io
-import os
 import re
 from pathlib import Path
 
@@ -28,11 +27,8 @@ def load_text_to_text_model():
 
 
 @st.cache_resource
-def load_text_to_speech_model():
-    if os.environ.get("HF_SPACE") == "TRUE":
-        return load_tts_model("hexgrad/kLegacy/v0.19/kokoro-v0_19.pth")
-    else:
-        return load_tts_model("OuteAI/OuteTTS-0.2-500M-GGUF/OuteTTS-0.2-500M-FP16.gguf")
+def load_text_to_speech_model(lang_code: str):
+    return load_tts_model("hexgrad/Kokoro-82M", **{"lang_code": lang_code})
 
 
 def numpy_to_wav(audio_array: np.ndarray, sample_rate: int) -> io.BytesIO:
@@ -115,29 +111,11 @@ if "clean_text" in st.session_state:
         "[Docs for this Step](https://mozilla-ai.github.io/document-to-podcast/step-by-step-guide/#step-2-podcast-script-generation)"
     )
     st.divider()
+    tts_link = "- [hexgrad/Kokoro-82M](https://github.com/hexgrad/kokoro)"
+
+    SPEAKERS = DEFAULT_SPEAKERS
 
     text_model = load_text_to_text_model()
-    speech_model = load_text_to_speech_model()
-
-    if os.environ.get("HF_SPACE") == "TRUE":
-        tts_link = "- [hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M)"
-        SPEAKERS = [
-            {
-                "id": 1,
-                "name": "Sarah",
-                "description": "The main host. She explains topics clearly using anecdotes and analogies, teaching in an engaging and captivating way.",
-                "voice_profile": "af_sarah",
-            },
-            {
-                "id": 2,
-                "name": "Michael",
-                "description": "The co-host. He keeps the conversation on track, asks curious follow-up questions, and reacts with excitement or confusion, often using interjections like hmm or umm.",
-                "voice_profile": "am_michael",
-            },
-        ]
-    else:
-        tts_link = "- [OuteAI/OuteTTS-0.2-500M](https://huggingface.co/OuteAI/OuteTTS-0.2-500M-GGUF)"
-        SPEAKERS = DEFAULT_SPEAKERS
 
     st.markdown(
         "For this demo, we are using the following models: \n"
@@ -180,6 +158,15 @@ if "clean_text" in st.session_state:
                 speaker.get(x, None) for x in ["name", "description", "voice_profile"]
             )
         )
+        if speakers[0]["voice_profile"][0] != speakers[1]["voice_profile"][0]:
+            raise ValueError(
+                "Both Kokoro speakers need to have the same language code. "
+                "More info here https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md"
+            )
+        # Get which language is used for generation from the first character of the Kokoro voice profile
+        language_code = speakers[0]["voice_profile"][0]
+        speech_model = load_text_to_speech_model(lang_code=language_code)
+
         system_prompt = DEFAULT_PROMPT.replace("{SPEAKERS}", speakers_str)
         with st.spinner("Generating Podcast..."):
             text = ""

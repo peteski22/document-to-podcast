@@ -1,7 +1,6 @@
-from huggingface_hub import hf_hub_download
 import torch
+from kokoro import KPipeline
 from llama_cpp import Llama
-from outetts import GGUFModelConfig_v1, InterfaceGGUF
 from dataclasses import dataclass, field
 
 
@@ -39,67 +38,53 @@ class TTSModel:
     the user doesn't have to deal with it.
 
     Args:
-        model (InterfaceGGUF): A TTS model that has a .generate() method or similar
+        model: A TTS model that has a .generate() method or similar
             that takes text as input, and returns an audio in the form of a numpy array.
         model_id (str): The model's identifier string.
         sample_rate (int): The sample rate of the audio, required for properly saving the audio to a file.
         custom_args (dict): Any model-specific arguments that a TTS model might require, e.g. tokenizer.
     """
 
-    model: InterfaceGGUF
+    model: KPipeline
     model_id: str
     sample_rate: int
     custom_args: field(default_factory=dict)
 
 
-def _load_oute_tts(model_id: str, **kwargs) -> TTSModel:
+def _load_kokoro_tts(model_id: str, **kwargs) -> TTSModel:
     """
-    Loads the given model_id using the OuteTTS interface. For more info: https://github.com/edwko/OuteTTS
+    Loads the kokoro model using the KPipeline from the package https://github.com/hexgrad/kokoro
 
     Args:
-        model_id (str): The model id to load.
-            Format is expected to be `{org}/{repo}/{filename}`.
-        language (str): Supported languages in 0.2-500M: en, zh, ja, ko.
-
+        model_id (str): Identifier for a specific model. Kokoro currently only supports one model.
+        kwargs (str): Needs to include 'lang_code' necessary to set the language used for generation. For example:
+            🇪🇸 'e' => Spanish es
+            🇫🇷 'f' => French fr-fr
+            🇮🇳 'h' => Hindi hi
+            🇮🇹 'i' => Italian it
+            🇧🇷 'p' => Brazilian Portuguese pt-br
+            🇺🇸 'a' => American English
+            🇬🇧 'b' => British English
+            🇯🇵 'j' => Japanese: you will need to also pip install misaki[ja]
+            🇨🇳 'z' => Mandarin Chinese: you will need to also pip install misaki[zh]
     Returns:
         TTSModel: The loaded model using the TTSModel wrapper.
     """
-    model_version = model_id.split("-")[1]
+    from kokoro import KPipeline
 
-    org, repo, filename = model_id.split("/")
-    local_path = hf_hub_download(repo_id=f"{org}/{repo}", filename=filename)
-    model_config = GGUFModelConfig_v1(
-        model_path=local_path,
-        language=kwargs.pop("language", "en"),
-        n_gpu_layers=-1 if torch.cuda.is_available else 0,
-        additional_model_config={"verbose": False},
-    )
-    model = InterfaceGGUF(model_version=model_version, cfg=model_config)
-
+    # If language code not supplied, assume British English
+    pipeline = KPipeline(lang_code=kwargs.pop("lang_code", "b"))
     return TTSModel(
-        model=model, model_id=model_id, sample_rate=model.audio_codec.sr, custom_args={}
-    )
-
-
-def _load_kokoro_legacy_tts(model_id: str, **kwargs) -> TTSModel:
-    from document_to_podcast.inference.kokoro.models import build_model
-
-    org, repo, kokoro_version, filename = model_id.split("/")
-    downloaded_model = hf_hub_download(f"{org}/{repo}", f"{kokoro_version}/{filename}")
-    model = build_model(downloaded_model)
-    return TTSModel(
-        model=model,
+        model=pipeline,
         model_id=model_id,
-        sample_rate=24000,
-        custom_args={"org": org, "repo": repo, "kokoro_version": kokoro_version},
+        sample_rate=24000,  # Kokoro's default sample rate
+        custom_args={},
     )
 
 
 TTS_LOADERS = {
     # To add support for your model, add it here in the format {model_id} : _load_function
-    "OuteAI/OuteTTS-0.1-350M-GGUF/OuteTTS-0.1-350M-FP16.gguf": _load_oute_tts,
-    "OuteAI/OuteTTS-0.2-500M-GGUF/OuteTTS-0.2-500M-FP16.gguf": _load_oute_tts,
-    "hexgrad/kLegacy/v0.19/kokoro-v0_19.pth": _load_kokoro_legacy_tts,
+    "hexgrad/Kokoro-82M": _load_kokoro_tts,
 }
 
 
