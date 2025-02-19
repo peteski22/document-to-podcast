@@ -36,7 +36,7 @@ These docs are your companion to mastering the **Document-to-Podcast Blueprint**
 
 Have more questions? Reach out to us on Discord and we'll see how we can help:
 
-<a target="_blank" href="https://discord.gg/c3Mxff4H"><img src="https://dcbadge.limes.pink/api/server/c3Mxff4H" alt="" /></a>
+<a target="_blank" href="https://discord.gg/gazz5XDU"><img src="https://dcbadge.limes.pink/api/server/gazz5XDU" alt="" /></a>
 
 ---
 
