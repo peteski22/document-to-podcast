@@ -59,6 +59,8 @@ def gen_button_clicked():
 sample_rate = 24000
 st.title("Document To Podcast")
 
+st.markdown("Built with: ⭐ https://github.com/mozilla-ai/document-to-podcast ⭐")
+
 st.header("Upload a File")
 
 uploaded_file = st.file_uploader(
