@@ -1,0 +1,32 @@
+exclude: example_data
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      #- id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-json
+      - id: check-merge-conflict
+        args: ['--assume-in-merge']
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: sort-simple-yaml
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 'v0.11.4'
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --config, ruff.toml]
+        files: ^src/
+      - id: ruff-format
+        args: [--config, ruff.toml]
+        files: ^src/
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version.
+    rev: 0.6.11
+    hooks:
+      # Update the uv lockfile
+      - id: uv-lock
