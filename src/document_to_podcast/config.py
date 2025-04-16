@@ -1,13 +1,12 @@
 from pathlib import Path
-from typing_extensions import Annotated
+from typing import Annotated
 
-from pydantic import BaseModel, FilePath
+from pydantic import BaseModel, Field
 from pydantic.functional_validators import AfterValidator
 
 from document_to_podcast.inference.model_loaders import TTS_LOADERS
 from document_to_podcast.inference.text_to_speech import TTS_INFERENCE
 from document_to_podcast.preprocessing import DATA_LOADERS
-
 
 DEFAULT_PROMPT = """
 You are a podcast scriptwriter generating engaging and natural-sounding conversations in JSON format.
@@ -27,32 +26,50 @@ Example:
 }
 """
 
-DEFAULT_SPEAKERS = [
+
+class Speaker(BaseModel):
+    id: int
+    name: str
+    description: str
+    voice_profile: str
+
+    model_config = {
+        "frozen": True,
+    }
+
+    def __str__(self):
+        """Returns a string representation of the speaker."""
+        return f"Speaker {self.id}. Named {self.name}. {self.description}"
+
+
+DEFAULT_SPEAKERS = frozenset(
     {
-        "id": 1,
-        "name": "Sarah",
-        "description": "The main host. She explains topics clearly using anecdotes and analogies, teaching in an engaging and captivating way.",
-        "voice_profile": "af_sarah",
-    },
-    {
-        "id": 2,
-        "name": "Michael",
-        "description": "The co-host. He keeps the conversation on track, asks curious follow-up questions, and reacts with excitement or confusion, often using interjections like hmm or umm.",
-        "voice_profile": "am_michael",
-    },
-]
+        Speaker(
+            id=1,
+            name="Sarah",
+            description="The main host. She explains topics clearly using anecdotes and analogies, "
+            "teaching in an engaging and captivating way.",
+            voice_profile="af_sarah",
+        ),
+        Speaker(
+            id=2,
+            name="Michael",
+            description="The co-host. He keeps the conversation on track, asks curious follow-up questions, "
+            "and reacts with excitement or confusion, often using interjections like hmm or umm.",
+            voice_profile="am_michael",
+        ),
+    }
+)
 
 
 def validate_input_file(value):
     if Path(value).suffix not in DATA_LOADERS:
-        raise ValueError(
-            f"input_file extension must be one of {list(DATA_LOADERS.keys())}"
-        )
+        raise ValueError(f"input_file extension must be one of {list(DATA_LOADERS.keys())}")
     return value
 
 
 def validate_text_to_text_model(value):
-    parts = value.split("/")
+    parts = value.split("/", maxsplit=3)
     if len(parts) != 3:
         raise ValueError("text_to_text_model must be formatted as `owner/repo/file`")
     if not value.endswith(".gguf"):
@@ -68,30 +85,53 @@ def validate_text_to_text_prompt(value):
 
 def validate_text_to_speech_model(value):
     if value not in TTS_LOADERS:
-        raise ValueError(
-            f"Model {value} is missing a loading function. Please define it under model_loaders.py"
-        )
+        raise ValueError(f"Model {value} is missing a loading function. Please define it under model_loaders.py")
     if value not in TTS_INFERENCE:
+        raise ValueError(f"Model {value} is missing an inference function. Please define it under text_to_speech.py")
+    return value
+
+
+def validate_speakers(value):
+    if len(value) != 2:
+        raise ValueError("Exactly two speakers are required")
+    if value[0].voice_profile[0] != value[1].voice_profile[0]:
         raise ValueError(
-            f"Model {value} is missing an inference function. Please define it under text_to_speech.py"
+            "Both speakers need to have the same language code. "
+            "More info here https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md"
         )
     return value
 
 
-class Speaker(BaseModel):
-    id: int
-    name: str
-    description: str
-    voice_profile: str
+class PodcastConfig(BaseModel):
+    input_file: Annotated[Path, AfterValidator(validate_input_file)] = Field(
+        description="""Path to the input file document on the filesystem to convert to podcast.
+        Supported extensions: .docx, .html, .md, .pdf, .txt""",
+    )
 
-    def __str__(self):
-        return f"Speaker {self.id}. Named {self.name}. {self.description}"
+    output_folder: Path = Field(
+        description="""Path to the output folder on the filesystem. Two files will be created:
+            - {output_folder}/podcast.txt
+            - {output_folder}/podcast.wav"""
+    )
 
+    text_to_text_model: Annotated[str, AfterValidator(validate_text_to_text_model)] = Field(
+        default="bartowski/Qwen2.5-7B-Instruct-GGUF/Qwen2.5-7B-Instruct-Q8_0.gguf",
+        description="""The text-to-text model_id.
+            - Needs to be formatted as `owner/repo/file`.
+            - Needs to be a gguf file.""",
+    )
 
-class Config(BaseModel):
-    input_file: Annotated[FilePath, AfterValidator(validate_input_file)]
-    output_folder: str
-    text_to_text_model: Annotated[str, AfterValidator(validate_text_to_text_model)]
-    text_to_text_prompt: Annotated[str, AfterValidator(validate_text_to_text_prompt)]
-    text_to_speech_model: Annotated[str, AfterValidator(validate_text_to_speech_model)]
-    speakers: list[Speaker]
+    text_to_text_prompt: Annotated[str, AfterValidator(validate_text_to_text_prompt)] = Field(
+        default=DEFAULT_PROMPT,
+        description="The prompt for the text-to-text model"
+    )
+
+    text_to_speech_model: Annotated[str, AfterValidator(validate_text_to_speech_model)] = Field(
+        default="hexgrad/Kokoro-82M",
+        description="The text-to-speech model_id."
+    )
+
+    speakers: Annotated[list[Speaker], AfterValidator(validate_speakers)] = Field(
+        default_factory=lambda: list(DEFAULT_SPEAKERS),
+        description="The speakers for the podcast"
+    )

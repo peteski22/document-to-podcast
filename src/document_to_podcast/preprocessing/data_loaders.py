@@ -1,6 +1,7 @@
+from pathlib import Path
+
 import PyPDF2
 import requests
-
 from docx import Document
 from loguru import logger
 from streamlit.runtime.uploaded_file_manager import UploadedFile
@@ -15,12 +16,12 @@ def load_pdf(pdf_file: str | UploadedFile) -> str | None:
         return None
 
 
-def load_txt(txt_file: str | UploadedFile) -> str | None:
+def load_txt(txt_file: Path | UploadedFile) -> str | None:
     try:
         if isinstance(txt_file, UploadedFile):
             return txt_file.getvalue().decode("utf-8")
         else:
-            with open(txt_file, "r") as file:
+            with Path.open(txt_file) as file:
                 return file.read()
     except Exception as e:
         logger.exception(e)

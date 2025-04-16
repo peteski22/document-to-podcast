@@ -1,10 +1,10 @@
 import re
+
 from bs4 import BeautifulSoup
 
 
 def clean_with_regex(text: str) -> str:
-    """
-    Clean text using regular expressions.
+    r"""Clean text using regular expressions.
 
     This function removes:
         - URLs

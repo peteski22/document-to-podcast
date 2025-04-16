@@ -9,17 +9,25 @@ license = {text = "Apache-2.0"}
 requires-python = ">=3.10,<3.13"
 dynamic = ["version"]
 dependencies = [
+  "argparse>=1.4.0",
   "beautifulsoup4",
+  "controlflow>=0.12.1",
   "fire",
+  "hf-xet>=1.0.3",
   "huggingface-hub",
   "kokoro>=0.7.9",
   "llama-cpp-python",
   "loguru",
+  "numpy>=1.22",
+  "pip>=25.0.1",
+  "prefect>=3.3.3",
   "pydantic",
   "PyPDF2[crypto]",
   "python-docx",
   "soundfile",
   "streamlit",
+  "torch>=2.6.0",
+  "tts>=0.22.0",
 ]
 
 [project.optional-dependencies]

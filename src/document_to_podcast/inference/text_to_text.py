@@ -1,4 +1,4 @@
-from typing import Iterator
+from collections.abc import Iterator
 
 from llama_cpp import Llama
 
@@ -35,8 +35,7 @@ def text_to_text(
     return_json: bool = True,
     stop: str | list[str] | None = None,
 ) -> str:
-    """
-    Transforms input_text using the given model and system prompt.
+    """Transforms input_text using the given model and system prompt.
 
     Args:
         input_text (str): The text to be transformed.
@@ -49,9 +48,7 @@ def text_to_text(
     Returns:
         str: The full transformed text.
     """
-    response = chat_completion(
-        input_text, model, system_prompt, return_json, stop=stop, stream=False
-    )
+    response = chat_completion(input_text, model, system_prompt, return_json, stop=stop, stream=False)
     return response["choices"][0]["message"]["content"]
 
 
@@ -62,8 +59,7 @@ def text_to_text_stream(
     return_json: bool = True,
     stop: str | list[str] | None = None,
 ) -> Iterator[str]:
-    """
-    Transforms input_text using the given model and system prompt.
+    """Transforms input_text using the given model and system prompt.
 
     Args:
         input_text (str): The text to be transformed.
@@ -76,9 +72,7 @@ def text_to_text_stream(
     Yields:
         str: Chunks of the transformed text as they are available.
     """
-    response = chat_completion(
-        input_text, model, system_prompt, return_json, stop=stop, stream=True
-    )
+    response = chat_completion(input_text, model, system_prompt, return_json, stop=stop, stream=True)
     for item in response:
         if item["choices"][0].get("delta", {}).get("content", None):
             yield item["choices"][0].get("delta", {}).get("content", None)

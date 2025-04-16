@@ -1,12 +1,14 @@
+import logging
+from dataclasses import dataclass, field
+from types import MappingProxyType
+
 import torch
 from kokoro import KPipeline
 from llama_cpp import Llama
-from dataclasses import dataclass, field
 
 
 def load_llama_cpp_model(model_id: str) -> Llama:
-    """
-    Loads the given model_id using Llama.from_pretrained.
+    """Loads the given model_id using Llama.from_pretrained.
 
     Examples:
         >>> model = load_llama_cpp_model("bartowski/Qwen2.5-7B-Instruct-GGUF/Qwen2.5-7B-Instruct-Q8_0.gguf")
@@ -31,8 +33,7 @@ def load_llama_cpp_model(model_id: str) -> Llama:
 
 @dataclass
 class TTSModel:
-    """
-    The purpose of this class is to provide a unified interface for all the TTS models supported.
+    """The purpose of this class is to provide a unified interface for all the TTS models supported.
     Specifically, different TTS model families have different peculiarities, for example, the bark models need a
     BarkProcessor, the parler models need their own tokenizer, etc. This wrapper takes care of this complexity so that
     the user doesn't have to deal with it.
@@ -52,8 +53,7 @@ class TTSModel:
 
 
 def _load_kokoro_tts(model_id: str, **kwargs) -> TTSModel:
-    """
-    Loads the kokoro model using the KPipeline from the package https://github.com/hexgrad/kokoro
+    """Loads the kokoro model using the KPipeline from the package https://github.com/hexgrad/kokoro
 
     Args:
         model_id (str): Identifier for a specific model. Kokoro currently only supports one model.
@@ -67,13 +67,14 @@ def _load_kokoro_tts(model_id: str, **kwargs) -> TTSModel:
             🇬🇧 'b' => British English
             🇯🇵 'j' => Japanese: you will need to also pip install misaki[ja]
             🇨🇳 'z' => Mandarin Chinese: you will need to also pip install misaki[zh]
+
     Returns:
         TTSModel: The loaded model using the TTSModel wrapper.
     """
     from kokoro import KPipeline
 
     # If language code not supplied, assume British English
-    pipeline = KPipeline(lang_code=kwargs.pop("lang_code", "b"))
+    pipeline = KPipeline(repo_id=model_id, lang_code=kwargs.pop("lang_code", "b"))
     return TTSModel(
         model=pipeline,
         model_id=model_id,
@@ -82,10 +83,12 @@ def _load_kokoro_tts(model_id: str, **kwargs) -> TTSModel:
     )
 
 
-TTS_LOADERS = {
-    # To add support for your model, add it here in the format {model_id} : _load_function
-    "hexgrad/Kokoro-82M": _load_kokoro_tts,
-}
+TTS_LOADERS = MappingProxyType(
+    {
+        # To add support for your model, add it here in the format {model_id} : _load_function
+        "hexgrad/Kokoro-82M": _load_kokoro_tts,
+    }
+)
 
 
 def load_tts_model(model_id: str, **kwargs) -> TTSModel:
