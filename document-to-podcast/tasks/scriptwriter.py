@@ -1,4 +1,4 @@
-from flytekit import ContainerTask, FlyteFile
+from flytekit import ContainerTask, FlyteFile, kwtypes
 
 scriptwriter = ContainerTask(
     name="scriptwriter",
@@ -8,16 +8,14 @@ scriptwriter = ContainerTask(
         "scriptwriter.py",
         "--input", "{{ .inputs.processed_document }}",
         "--output", "{{ .outputs.podcast_script }}",
-        "--hosts", "{{ .inputs.host_name }}", "{{ .inputs.cohost_name }}"
+        "--hosts", "{{ .inputs.host_name }}, {{ .inputs.cohost_name }}",
     ],
-    inputs={
-        "processed_document": FlyteFile,
-        "host_name": str,
-        "cohost_name": str,
-    },
-    outputs={
-        "podcast_script": FlyteFile,
-    },
+    inputs=kwtypes(
+        processed_document=FlyteFile,
+        host_name=str,
+        cohost_name=str,
+    ),
+    outputs=kwtypes(podcast_script=FlyteFile),
     #requests={"nvidia.com/gpu": "1"},
     cache=False,
 )
